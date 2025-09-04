@@ -1,0 +1,35 @@
+{
+  "name": "react",
+  "version": "1.0.0",
+  "description": "",
+  "keywords": [],
+  "main": "src/index.tsx",
+  "dependencies": {
+    "@popperjs/core": "2.11.8",
+    "bootstrap": "5.3.8",
+    "bootstrap-icons": "1.13.1",
+    "react": "^19.0.0",
+    "react-bootstrap": "2.10.10",
+    "react-bootstrap-icons": "1.11.6",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "19.0.0",
+    "@types/react-dom": "19.0.0",
+    "@vitejs/plugin-react": "^4.7.0",
+    "loader-utils": "3.2.1",
+    "typescript": "5.7.2",
+    "vite": "^6.3.5"
+  },
+  "scripts": {  
+    "start": "vite",
+    "build": "vite build",
+    "serve": "vite preview"
+  },
+  "browserslist": [
+    ">0.2%",
+    "not dead",
+    "not ie <= 11",
+    "not op_mini all"
+  ]
+}

@@ -1,0 +1,5 @@
+# Site for generating card sheets for MTG proxies using scryfall data.
+
+Most card layouts are accounted for and readjusted automatically based on layout data and card types.
+
+You may edit the text and upload custom images for each individual card

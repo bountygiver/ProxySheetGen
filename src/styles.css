@@ -1,0 +1,301 @@
+.App {
+  font-family: sans-serif;
+  text-align: center;
+}
+
+.content {
+  display: block;
+}
+
+.printable {
+  /* display: none; */
+}
+
+ul.list {
+  list-style-type: none;
+}
+
+@media print {
+  .content,
+  .dont-print,
+  iframe {
+    display: none !important;
+  }
+
+  .printable {
+    display: block;
+    print-color-adjust: exact;
+  }
+
+  .printable * {
+    print-color-adjust: exact;
+  }
+}
+
+.cardResult {
+  padding: 1rem;
+}
+
+.cardResult img {
+  object-fit: contain;
+  cursor: pointer;
+  width: 146px;
+}
+
+.card-space {
+  --card-width: 63mm;
+  --card-height: 88mm;
+  width: var(--card-width);
+  height: var(--card-height);
+  position: relative;
+  margin: 0 1px 1px 0;
+  page-break-inside: avoid;
+}
+
+.card-print {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: inline-block;
+  width: var(--card-width);
+  height: var(--card-height);
+  border: 10px solid #14110f;
+  border-radius: 4.75%/3.5%;
+  overflow: hidden;
+  font-size: 10px;
+  line-height: 1.15;
+  background-color: black;
+}
+
+.card-print.card-horizontal,
+.card-print.card-type-battle,
+.card-print.card-layout-split {
+  width: var(--card-height);
+  height: var(--card-width);
+  transform-origin: 0% 0%;
+  transform: rotate(90deg) translateY(-100%);
+}
+
+.card-contents {
+  display: grid;
+  height: 100%;
+  background: white;
+  border-radius: 3.5%;
+  grid-template: "name" auto "art" 1fr "type" 0px "oracle" auto "footer" auto;
+}
+
+.card-layout-flipped > .card-contents,
+.card-layout-unflipped > .card-contents {
+  grid-template: "name" auto "art" auto "type" 0px "oracle" 1fr "footer" auto;
+}
+
+.card-layout-flipped .img > img {
+  transform: rotate(180deg);
+}
+
+.card-type-saga > .card-contents {
+  grid-template: "name name" auto "type type" auto "oracle art" 1fr "footer footer" auto / 6fr 4fr;
+}
+
+.card-type-case > .card-contents,
+.card-type-class > .card-contents {
+  grid-template: "name name" auto "type type" auto "art oracle" 1fr "footer footer" auto / 4fr 6fr;
+}
+
+.card-layout-adventure > .card-contents {
+  grid-template: "name name" auto "art art" 1fr "type type" 0px "name2 oracle" auto "type2 oracle" auto "oracle2 oracle" auto "footer footer" auto / 1fr 1fr;
+}
+
+.card-layout-split > .card-contents {
+  grid-template: "name name2" auto "art art" 1fr "type type2" 0px "oracle oracle2" auto "footer footer" auto / 1fr 1fr;
+}
+
+.card-layout-split.card-type-room > .card-contents {
+  grid-template: "name name2" auto "art art" 1fr "type type" 0px "type2 type2" 0 "oracle oracle2" auto "footer footer" auto / 1fr 1fr;
+}
+
+.card-type-room .type-2 {
+  display: none;
+}
+
+.card-contents > * {
+  width: 100%;
+  text-align: left;
+}
+
+.card-contents > .name {
+  grid-area: name;
+  font-size: 3mm;
+  font-weight: bold;
+  padding-top: 1mm;
+  padding-left: 1mm;
+  padding-right: 1mm;
+  text-shadow: 1px 1px 0px white, -1px 1px 0px white, 1px -1px 0px white,
+    -1px -1px 0px white;
+  display: grid;
+  grid-template-columns: 1fr auto;
+}
+
+.card-contents > .name.name-2 {
+  grid-area: name2;
+}
+
+.mana {
+  white-space: pre;
+}
+
+.mana img {
+  width: 16px;
+}
+
+.adventure .mana img {
+  width: 10px;
+}
+
+.card-contents > .type > .type-contents:before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: -1;
+  margin: 1mm 1mm 1px 1mm;
+  /* !importanté */
+  border-radius: inherit;
+  background: white;
+  opacity: 0.9;
+  /* !importanté */
+}
+
+.card-contents > .type {
+  grid-area: type;
+  transform: translateY(0%);
+}
+.card-contents > .type.type-2 {
+  grid-area: type2;
+}
+
+.card-contents > .type > .type-contents {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: 2mm 5mm 1mm 5mm;
+  font-size: 2.5mm;
+  font-weight: bold;
+  border-radius: 30px 30px 0px 0px / 30px 30px 0px 0px;
+  background: black;
+  box-sizing: border-box;
+  transform: translateY(0%);
+}
+
+.card-type-saga .type > .type-contents,
+.card-type-case .type > .type-contents,
+.card-type-class .type > .type-contents,
+.card-layout-adventure .type.type-2 > .type-contents {
+  position: relative;
+}
+
+.card-contents > .oracle {
+  padding: 0mm 1mm;
+  min-height: 30mm;
+  grid-area: oracle;
+  overflow: hidden;
+  white-space: pre-wrap;
+  margin: 0px;
+  background-color: rgba(255, 255, 255, 0.7);
+}
+
+.oracle.oracle-2 {
+  grid-area: oracle2;
+  min-height: unset;
+}
+
+.card-type-battle .card-contents > .oracle,
+.card-layout-split .card-contents > .oracle,
+.card-type-token .card-contents > .oracle {
+  min-height: 15mm;
+}
+
+.card-contents > .footer {
+  grid-area: footer;
+  display: grid;
+  grid-template: "flip flip" auto "artist stats" auto / 1fr auto;
+  background-color: rgba(255, 255, 255, 0.7);
+}
+
+.card-contents .footer > .stats {
+  grid-area: stats;
+  border-radius: 1.5rem;
+  border: solid 2px black;
+  font-size: 5mm;
+  font-weight: bold;
+  text-align: center;
+  padding: 1px 1.25rem;
+}
+
+.card-contents > .img {
+  grid-area: art;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: start;
+}
+
+.card-contents > .img > img {
+  width: 100%;
+  object-fit: contain;
+}
+
+.card-type-saga .card-contents > .img > img,
+.card-type-case .card-contents > .img > img,
+.card-type-class .card-contents > .img > img,
+.card-type-token .card-contents > .img > img {
+  width: auto;
+  height: 100%;
+  object-fit: contain;
+}
+
+.card-contents > .footer > .artist {
+  grid-area: artist;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  justify-content: end;
+  font-size: 5pt;
+}
+
+.card-contents > .footer > .artist::before {
+  content: "PLAYTEST ONLY // NOT FOR RESALE";
+}
+
+.card-contents > .footer > .artist::after {
+  content: "™ & © Wizards of the Coast";
+}
+
+.card-reminder {
+  grid-area: flip;
+  font-weight: bold;
+  font-size: 7pt;
+}
+
+.flip-hint {
+  grid-area: flip;
+  display: flex;
+  flex-basis: 100%;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0.25rem 0rem;
+  padding: 0.125rem 0.25rem;
+  border-radius: 1rem;
+  border: 1px solid black;
+}
+
+.oracle .inline-symbols {
+  height: 8px;
+}
+
+.flip-hint .inline-symbols {
+  height: 11px;
+}
