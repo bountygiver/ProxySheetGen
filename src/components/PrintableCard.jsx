@@ -119,7 +119,9 @@ export default function PrintableCard(props) {
   if (card.layout == "modal_dfc" && faces?.length == 2) {
     return (
       <>
-        <PrintableCard key="frontFace" card={{ ...faces[0], flip: faces[1] }} />
+        <PrintableCard key="frontFace" card={{ ...faces[0], flip: faces[1] }}>
+          {props.children}
+        </PrintableCard>
         <PrintableCard
           key="backFace"
           card={{
@@ -138,7 +140,9 @@ export default function PrintableCard(props) {
           ...f,
           reminder: i ? `(Transformed from ${faces[0].name})` : "",
         }}
-      />
+      >
+        {i == 0 && props.children}
+      </PrintableCard>
     ));
   } else if (card.layout == "flip") {
     return faces.map((f, i) => (
@@ -151,7 +155,9 @@ export default function PrintableCard(props) {
           colors: card.colors,
           reminder: i ? `(Flipped of ${faces[0].name})` : "",
         }}
-      />
+      >
+        {i == 0 && props.children}
+      </PrintableCard>
     ));
   }
 
@@ -188,6 +194,9 @@ export default function PrintableCard(props) {
             <CardStats card={card} />
           </div>
         </div>
+      </div>
+      <div className="dont-print toolbar">
+        {props.children}
       </div>
     </div>
   );

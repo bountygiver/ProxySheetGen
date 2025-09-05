@@ -152,7 +152,7 @@ function SryBoxResults({ query }) {
       <PageIndicator />
       <div
         className="d-flex flex-wrap overflow-y-auto"
-        style={{ height: "400px" }}
+        style={{ maxHeight: "400px" }}
       >
         {(query?.length && (
           <Suspense fallback={<Loading />}>

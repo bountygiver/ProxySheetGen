@@ -12,9 +12,9 @@ const stats = function (card) {
   );
 };
 
-function CardFaceEditor({ card, formId }) {
+function CardFaceEditor({ card, formId, className }) {
   return (
-    <Form id={formId}>
+    <Form className={className} id={formId}>
       <Form.Group className="mb-3">
         <Form.Label>Name</Form.Label>
         <Form.Control
@@ -65,14 +65,14 @@ function CardFaceEditor({ card, formId }) {
         <Form.Label>Artist</Form.Label>
         <Form.Control type="text" name="artist" defaultValue={card?.artist} />
       </Form.Group>
-      <hr />
+      <hr className="d-lg-none" />
     </Form>
   );
 }
 
 function CreateEditorForCardFace(card, formId) {
   return {
-    component: <CardFaceEditor card={card} formId={formId} />,
+    component: <CardFaceEditor className="flex-grow-1" card={card} formId={formId} />,
     callback: () => {
       const form = document.getElementById(formId);
       const formData = new FormData(form);
@@ -97,14 +97,16 @@ export default function ({ card, visible, handleClose, handleSubmit }) {
     ?.filter((f) => f.object == "card_face")
     .map((f, i) => CreateEditorForCardFace(f, `card-face-editor-${i}`));
   return (
-    <Modal show={visible} onHide={handleClose}>
+    <Modal size="xl" show={visible} onHide={handleClose}>
       <Modal.Header closeButton>
         <Modal.Title>Card Editor</Modal.Title>
       </Modal.Header>
 
       <Modal.Body>
-        {(cardFaces?.length && cardFaces?.map((c) => c.component)) ||
-          mainFace.component}
+        <div class="d-flex flex-wrap gap-2">
+          {(cardFaces?.length && cardFaces?.map((c) => c.component)) ||
+            mainFace.component}
+        </div>
       </Modal.Body>
 
       <Modal.Footer>

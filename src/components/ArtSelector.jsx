@@ -19,20 +19,16 @@ const fetchResolve = (data) => {
 };
 
 const getArt = function (cardName) {
-  if (artCache[cardName]) {
-    return Promise.resolve(artCache[cardName]);
+  if (!artCache[cardName]) {
+    artCache[cardName] = fetch(
+      `https://api.scryfall.com/cards/search/?q=${encodeURIComponent(
+        `!"${cardName}"`
+      )}&page=1&unique=art`
+    )
+      .then((r) => r.json())
+      .then(fetchResolve);
   }
-  return fetch(
-    `https://api.scryfall.com/cards/search/?q=${encodeURIComponent(
-      `!"${cardName}"`
-    )}&page=1&unique=art`
-  )
-    .then((r) => r.json())
-    .then(fetchResolve)
-    .then((d) => {
-      artCache[cardName] = d;
-      return d;
-    });
+  return artCache[cardName];
 };
 
 const ArtOptions = function ({ results }) {
@@ -55,13 +51,14 @@ const ArtOptions = function ({ results }) {
 };
 
 function Loading() {
-  return <Spinner animation="border mx-auto" />;
+  return <Spinner animation="border" className="mx-auto" />;
 }
 
 export default function ({ card, visible, handleClose, handleSubmit }) {
   const [result, setResult] = useState(null);
   useEffect(() => {
-    if (card?.name && visible && !result) {
+    if (card?.name && visible) {
+      setResult(null);
       getArt(card.name).then(setResult);
     }
   }, [card, visible]);

@@ -3,6 +3,10 @@
   text-align: center;
 }
 
+body {
+  background-color: var(--bs-body-bg);
+}
+
 .content {
   display: block;
 }
@@ -30,6 +34,10 @@ ul.list {
   .printable * {
     print-color-adjust: exact;
   }
+
+  .App, body {
+    background-color: white !important;
+  }
 }
 
 .cardResult {
@@ -45,6 +53,7 @@ ul.list {
 .card-space {
   --card-width: 63mm;
   --card-height: 88mm;
+  --bs-body-color: black;
   width: var(--card-width);
   height: var(--card-height);
   position: relative;
@@ -80,6 +89,7 @@ ul.list {
   display: grid;
   height: 100%;
   background: white;
+  color: black;
   border-radius: 3.5%;
   grid-template: "name" auto "art" 1fr "type" 0px "oracle" auto "footer" auto;
 }
@@ -298,4 +308,20 @@ ul.list {
 
 .flip-hint .inline-symbols {
   height: 11px;
+}
+
+.card-space .toolbar {
+  position: absolute;
+  bottom: 1rem;
+  left: 1rem;
+  opacity: 0;
+  transition: opacity 0.25s ease-in;
+}
+
+.card-space:hover .toolbar {
+  opacity: 0.5;
+}
+
+.card-space .toolbar:hover {
+  opacity: 1;
 }

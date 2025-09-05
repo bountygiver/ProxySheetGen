@@ -1,60 +1,72 @@
 import { useState, createContext, useContext, useRef } from "react";
 import "bootstrap/dist/css/bootstrap.css";
-import { Pen, Trash, CardImage } from "react-bootstrap-icons";
+import { Pen, Trash, CardImage, Eye } from "react-bootstrap-icons";
 import Button from "react-bootstrap/Button";
-import CloseButton from "react-bootstrap/CloseButton";
+import Form from 'react-bootstrap/Form';
 import ButtonGroup from "react-bootstrap/ButtonGroup";
 import "./styles.css";
+import useList from "./helper/list";
 import ScryBox from "./components/search";
 import CardEditor from "./components/editor";
 import PrintableCard from "./components/PrintableCard";
+import MassEntry from "./components/MassEntry";
 import ArtSelector from "./components/ArtSelector";
+import Notification from "./components/Notification";
+import Accordion from 'react-bootstrap/Accordion';
+import ToastContainer from 'react-bootstrap/ToastContainer';
 
 const CardContext = createContext();
 
+function CardActions({ card }) {
+  const { removeCard, editCard, selectCardArt } = useContext(CardContext);
+
+  return (<ButtonGroup>
+    <Button
+      variant="info"
+      title="Edit Card"
+      onClick={() => {
+        editCard(card);
+      }}
+    >
+      <Pen />
+    </Button>
+    <Button
+      variant="info"
+      title="Select Card Variant"
+      onClick={() => {
+        selectCardArt(card);
+      }}
+    >
+      <CardImage />
+    </Button>
+    <Button
+      variant="success"
+      title="Open in Scryfall"
+      href={card?.scryfall_uri}
+      target="_blank"
+    >
+      <Eye />
+    </Button>
+    <Button
+      variant="danger"
+      title="Remove Card"
+      onClick={() => {
+        removeCard(card);
+      }}
+    >
+      <Trash />
+    </Button>
+  </ButtonGroup>);
+}
+
 function CardListItem({ card }) {
-  const [artSelectVisible, setArtSelectVisible] = useState(false);
-  const { removeCard, editCard, replaceCard } = useContext(CardContext);
 
   return (
     <li className="list-group-item">
       <div className="d-flex justify-content-between">
         {card.name}
         <div>
-          <ArtSelector
-            card={card}
-            visible={artSelectVisible}
-            handleClose={() => setArtSelectVisible(false)}
-            handleSubmit={(newCard) => {
-              replaceCard(card, newCard);
-            }}
-          />
-          <ButtonGroup>
-            <Button
-              variant="info"
-              onClick={() => {
-                editCard(card);
-              }}
-            >
-              <Pen />
-            </Button>
-            <Button
-              variant="info"
-              onClick={() => {
-                setArtSelectVisible(true);
-              }}
-            >
-              <CardImage />
-            </Button>
-            <Button
-              variant="danger"
-              onClick={() => {
-                removeCard(card);
-              }}
-            >
-              <Trash />
-            </Button>
-          </ButtonGroup>
+          <CardActions card={card} />
         </div>
       </div>
     </li>
@@ -65,54 +77,67 @@ function CardsList() {
   const { cards } = useContext(CardContext);
 
   return (
-    <>
-      <ul className="list-group">
-        {cards.map((c) => (
-          <CardListItem key={c.internalId} card={c} />
-        ))}
-      </ul>
-    </>
+    <Accordion>
+      <Accordion.Item eventKey="0">
+        <Accordion.Header>Selected Cards</Accordion.Header>
+        <Accordion.Body>
+          <ul className="list-group">
+            {cards.map((c) => (
+              <CardListItem key={c.internalId} card={c} />
+            ))}
+          </ul>
+          {cards?.length ? <></> : <div>No cards, why not add some?</div>}
+        </Accordion.Body>
+      </Accordion.Item>
+    </Accordion>
   );
 }
 
 export default function App() {
-  const [cards, setCards] = useState([]);
+  const [cards, _addCard, _removeCard, _replaceCard] = useList();
+  const [notifications, addNotification] = useList();
   const [selectedCard, setSelectedCard] = useState();
-  const [editorVisbible, setEditorVisible] = useState();
+  const [editorVisbible, setEditorVisible] = useState(false);
+  const [artSelectVisible, setArtSelectVisible] = useState(false);
+  const [massEntryVisible, setMassEntryVisible] = useState(false);
+  const [theme, setTheme] = useState("light");
   const cardCount = useRef(0);
   const addCard = function (card) {
-    setCards([...cards, { ...card, internalId: cardCount.current++ }]);
+    _addCard({ ...card, internalId: cardCount.current++ });
+    addNotification(`Added card ${card.name}`);
   };
   const editCard = function (card) {
     setSelectedCard(card);
     setEditorVisible(true);
   };
+  const selectCardArt = function (card) {
+    setSelectedCard(card);
+    setArtSelectVisible(true);
+  };
   const replaceCard = function (card, newCard) {
-    const index = cards.findIndex((c) => c === card);
-    if (index != -1) {
-      setCards(
-        cards.toSpliced(index, 1, {
-          ...newCard,
-          internalId: cardCount.current++,
-        })
-      );
-    }
+    _replaceCard(card, { ...newCard, internalId: cardCount.current++ });
     setEditorVisible(false);
   };
   const removeCard = function (card) {
-    const index = cards.findIndex((c) => c === card);
-    if (index != -1) {
-      setCards(cards.toSpliced(index, 1));
+    if (confirm("Are you sure?")) {
+      _removeCard(card);
     }
   };
 
   return (
     <div className="App">
       <CardContext.Provider
-        value={{ cards, addCard, removeCard, replaceCard, editCard }}
+        value={{ cards, addCard, removeCard, replaceCard, editCard, selectCardArt }}
       >
         <div className="content">
-          <span>Add Cards Here</span>
+          <div className="d-flex justify-content-center">
+            <Form.Check id="theme-switch" type="switch" label={theme == "light" ? "Light Mode" : "Dark Mode"} onChange={(e) => {
+              const newTheme = e.target.checked ? "dark" : "light";
+              setTheme(newTheme);
+              document.body.setAttribute("data-bs-theme", newTheme);
+            }} />
+          </div>
+          <div><span>Add Cards Here</span><Button className="m-1" variant="primary" onClick={() => setMassEntryVisible(true)}>Mass Entry</Button></div>
           <ScryBox onClick={addCard} />
           <CardsList />
           <CardEditor
@@ -124,11 +149,39 @@ export default function App() {
               setEditorVisible(false);
             }}
           />
+          <ArtSelector
+            card={selectedCard}
+            visible={artSelectVisible}
+            handleClose={() => setArtSelectVisible(false)}
+            handleSubmit={(newCard) => {
+              replaceCard(selectedCard, newCard);
+              setArtSelectVisible(false);
+            }}
+          />
+          <MassEntry
+            visible={massEntryVisible}
+            handleClose={() => setMassEntryVisible(false)}
+            handleSubmit={(newCards) => {
+              const cardsToAdd = newCards.flatMap(({ card, count }) => {
+                return new Array(count).fill(0).map(() => {
+                  return { ...card, internalId: cardCount.current++ };
+                })
+              });
+              _addCard(...cardsToAdd);
+              addNotification(`${cardsToAdd.length} cards added!`)
+              setMassEntryVisible(false);
+            }}
+          />
+          <ToastContainer className="position-fixed" style={{right: "1rem", bottom: "1rem"}}>
+            {notifications.map((n, i) => (<Notification key={i} message={n} />))}
+          </ToastContainer>
         </div>
         <div className="printable">
           <div className="d-flex flex-wrap">
             {cards?.map((c) => (
-              <PrintableCard key={c.internalId} card={c} />
+              <PrintableCard key={c.internalId} card={c}>
+                <CardActions card={c} />
+              </PrintableCard>
             ))}
           </div>
         </div>
