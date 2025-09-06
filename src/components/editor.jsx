@@ -12,7 +12,7 @@ const stats = function (card) {
   );
 };
 
-function CardFaceEditor({ card, formId, className }) {
+function CardFaceEditor({ card, formId, className, hideImageEditor }) {
   return (
     <Form className={className} id={formId}>
       <Form.Group className="mb-3">
@@ -57,11 +57,11 @@ function CardFaceEditor({ card, formId, className }) {
           defaultValue={stats(card)}
         />
       </Form.Group>
-      <Form.Group className="mb-3">
+      <Form.Group className="mb-3" hidden={hideImageEditor}>
         <Form.Label>Custom Image</Form.Label>
         <Form.Control type="file" />
       </Form.Group>
-      <Form.Group className="mb-3">
+      <Form.Group className="mb-3" hidden={hideImageEditor}>
         <Form.Label>Artist</Form.Label>
         <Form.Control type="text" name="artist" defaultValue={card?.artist} />
       </Form.Group>
@@ -70,9 +70,9 @@ function CardFaceEditor({ card, formId, className }) {
   );
 }
 
-function CreateEditorForCardFace(card, formId) {
+function CreateEditorForCardFace(card, formId, hideImageEditor = false) {
   return {
-    component: <CardFaceEditor className="flex-grow-1" card={card} formId={formId} />,
+    component: <CardFaceEditor className="flex-grow-1" card={card} formId={formId} hideImageEditor = {hideImageEditor} />,
     callback: () => {
       const form = document.getElementById(formId);
       const formData = new FormData(form);
@@ -95,7 +95,7 @@ export default function ({ card, visible, handleClose, handleSubmit }) {
   const mainFace = CreateEditorForCardFace(card, "main-card-editor");
   const cardFaces = card?.card_faces
     ?.filter((f) => f.object == "card_face")
-    .map((f, i) => CreateEditorForCardFace(f, `card-face-editor-${i}`));
+    .map((f, i) => CreateEditorForCardFace(f, `card-face-editor-${i}`, i && card?.image_uris && card.layout != "flip"));
   return (
     <Modal size="xl" show={visible} onHide={handleClose}>
       <Modal.Header closeButton>

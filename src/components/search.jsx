@@ -35,17 +35,17 @@ function CardResult({ card }) {
 }
 
 function Loading() {
-  return <Spinner animation="border" />;
+  return <Spinner className="mx-auto" animation="border" />;
 }
 
 function CardResults({ resultPromise }) {
   if (!resultPromise) {
-    return <></>;
+    return <Loading />;
   }
   const result = use(resultPromise());
 
   if (!result?.data?.length) {
-    return <div>No Results found</div>;
+    return <div className="mx-auto fw-bold my-1">No Results found</div>;
   }
   return result.data.map((m) => <CardResult key={m.id} card={m} />);
 }
@@ -148,19 +148,20 @@ function SryBoxResults({ query }) {
   };
 
   return (
-    <div>
-      <PageIndicator />
-      <div
-        className="d-flex flex-wrap overflow-y-auto"
-        style={{ maxHeight: "400px" }}
-      >
-        {(query?.length && (
-          <Suspense fallback={<Loading />}>
-            <CardResults resultPromise={results[page]} />
-          </Suspense>
-        )) || <></>}
-      </div>
-    </div>
+    <Suspense fallback={<Loading />}>
+      <div>
+        <PageIndicator />
+        <div
+          className="d-flex flex-wrap overflow-y-auto"
+          style={{ maxHeight: "400px" }}
+        >
+          {(query?.length && (
+            <Suspense fallback={<Loading />}>
+              <CardResults resultPromise={results[page]} />
+            </Suspense>
+          )) || <div className="mx-auto fw-bold">Enter ScryFall search terms to start adding cards!</div>}
+        </div>
+      </div></Suspense>
   );
 }
 
