@@ -1,10 +1,10 @@
-const colorDict = {
+export const colorDict = {
   C: "grey",
   W: "#f2e5b8",
   U: "#a5d9ed",
   B: "#1f2427",
   R: "#b84a3a",
-  G: "#a6b5a8",
+  G: "#539155",
 };
 
 export default function extractCardColor(card, defaultColor = "grey") {

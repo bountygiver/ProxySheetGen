@@ -1,5 +1,5 @@
 import { useManaSymbols } from "../helper/symbols";
-import CardColor from "../helper/color";
+import {default as CardColor, colorDict} from "../helper/color";
 
 const reminderTexts = [
   "(You may cast either half. That door unlocks on the battlefield. As a sorcery, you may pay the mana cost of a locked door to unlock it.)",
@@ -78,7 +78,7 @@ function CardData({ card, append }) {
             className="type-contents"
             style={{ background: CardColor(card) }}
           >
-            <div>{card.type_line}</div>
+            <div>{card.color_indicator?.map((c) => (<span className="card-color-indicator" style={{color: colorDict[c]}}>&#9210; </span>))}<span>{card.type_line}</span></div>
           </div>
         </div>
         <div className={className("oracle")}>{oracle}</div>
@@ -178,14 +178,6 @@ export default function PrintableCard(props) {
             <img src={card.override_image || card.image_uris?.art_crop} />
           </div>
           <CardData card={card} />
-          <div className="type">
-            <div
-              className="type-contents"
-              style={{ background: CardColor(card) }}
-            >
-              <div>{card.type_line}</div>
-            </div>
-          </div>
           <CardData card={card.split} append={[2]} />
           <div className="footer">
             <FlipHint card={card.flip} />
