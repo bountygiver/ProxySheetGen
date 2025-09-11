@@ -7,6 +7,6 @@ export default defineConfig(() => {
       outDir: 'build',
     },
     plugins: [react()],
-    base: '/ProxySheetGen/',
+    base: process.env.VITE_BASE && `/${process.env.VITE_BASE}/`,
   };
 });
