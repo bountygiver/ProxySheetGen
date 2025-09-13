@@ -1,4 +1,4 @@
-import { useState, createContext, useContext, useRef } from "react";
+import { useState, createContext, useContext, useRef, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.css";
 import { Pen, Trash, CardImage, Eye } from "react-bootstrap-icons";
 import Button from "react-bootstrap/Button";
@@ -95,7 +95,7 @@ function CardsList() {
 
 export default function App() {
   const [cards, _addCard, _removeCard, _replaceCard] = useList();
-  const [notifications, addNotification] = useList();
+  const [notifications, addNotification, removeNotification] = useList();
   const [selectedCard, setSelectedCard] = useState();
   const [editorVisbible, setEditorVisible] = useState(false);
   const [artSelectVisible, setArtSelectVisible] = useState(false);
@@ -103,8 +103,9 @@ export default function App() {
   const [theme, setTheme] = useState("light");
   const cardCount = useRef(0);
   const addCard = function (card) {
-    _addCard({ ...card, internalId: cardCount.current++ });
-    addNotification(`Added card ${card.name}`);
+    const newCard = { ...card, internalId: cardCount.current++ };
+    _addCard(newCard);
+    addNotification({ contents: `Added card ${card.name}`, card: [newCard] });
   };
   const editCard = function (card) {
     setSelectedCard(card);
@@ -124,6 +125,17 @@ export default function App() {
     }
   };
 
+  const setThemeOnCheckbox = function(checked) {
+    const newTheme = checked ? "dark" : "light";
+    setTheme(newTheme);
+    document.body.setAttribute("data-bs-theme", newTheme);
+    localStorage.setItem("theme", newTheme);
+  }
+
+  useEffect(() => {
+    setThemeOnCheckbox(localStorage.getItem("theme") == "dark");
+  }, []);
+
   return (
     <div className="App">
       <CardContext.Provider
@@ -131,10 +143,8 @@ export default function App() {
       >
         <div className="content">
           <div className="d-flex justify-content-center">
-            <Form.Check id="theme-switch" type="switch" label={theme == "light" ? "Light Mode" : "Dark Mode"} onChange={(e) => {
-              const newTheme = e.target.checked ? "dark" : "light";
-              setTheme(newTheme);
-              document.body.setAttribute("data-bs-theme", newTheme);
+            <Form.Check id="theme-switch" type="switch" checked={theme == "dark"} label={theme == "light" ? "Light Mode" : "Dark Mode"} onChange={(e) => {
+              setThemeOnCheckbox(e.target.checked);
             }} />
           </div>
           <div><span>Add Cards Here</span><Button className="m-1" variant="primary" onClick={() => setMassEntryVisible(true)}>Mass Entry</Button></div>
@@ -168,12 +178,17 @@ export default function App() {
                 })
               });
               _addCard(...cardsToAdd);
-              addNotification(`${cardsToAdd.length} cards added!`)
+              addNotification({ contents: `${cardsToAdd.length} cards added!`, card: cardsToAdd, delay: 10000 })
               setMassEntryVisible(false);
             }}
           />
-          <ToastContainer className="position-fixed" style={{right: "1rem", bottom: "1rem"}}>
-            {notifications.map((n, i) => (<Notification key={i} message={n} />))}
+          <ToastContainer className="position-fixed" style={{ right: "1rem", bottom: "1rem" }}>
+            {notifications.map((n, i) => (<Notification key={i} message={n.contents} delay={n.delay}>
+              {n.card && <Button size="sm" onClick={() => {
+                _removeCard(...n.card);
+                removeNotification(n);
+              }}>Undo</Button>}
+            </Notification>))}
           </ToastContainer>
         </div>
         <div className="printable">

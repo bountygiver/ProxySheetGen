@@ -1,6 +1,7 @@
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 import Form from "react-bootstrap/Form";
+import { useRef } from 'react';
 
 const stats = function (card) {
   if (!card) return;
@@ -13,6 +14,7 @@ const stats = function (card) {
 };
 
 function CardFaceEditor({ card, formId, className, hideImageEditor }) {
+  const oracleFieldRef = useRef();
   return (
     <Form className={className} id={formId}>
       <Form.Group className="mb-3">
@@ -20,8 +22,8 @@ function CardFaceEditor({ card, formId, className, hideImageEditor }) {
         <Form.Control
           type="text"
           placeholder="Card Name"
-          name="name"
-          defaultValue={card?.name}
+          name="printed_name"
+          defaultValue={card?.printed_name || card?.name}
         />
       </Form.Group>
       <Form.Group className="mb-3">
@@ -46,8 +48,14 @@ function CardFaceEditor({ card, formId, className, hideImageEditor }) {
           as="textarea"
           rows={3}
           name="oracle_text"
+          ref={oracleFieldRef}
           defaultValue={card?.oracle_text}
         />
+        {
+          card?.printed_text ? <Button className="m-1" onClick={() => {
+            oracleFieldRef.current.value = card.printed_text;
+          }}>Use Printed</Button> : <></>
+        }
       </Form.Group>
       <Form.Group className="mb-3">
         <Form.Label>Stats</Form.Label>

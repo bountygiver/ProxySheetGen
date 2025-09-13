@@ -68,7 +68,7 @@ function CardData({ card, append }) {
     card && (
       <>
         <div className={className("name")}>
-          <div>{card.name}</div>
+          <div>{card.printed_name || card.name}</div>
           <div className={className("mana")}>
             <ManaDisplay mana={card.mana_cost} />
           </div>
@@ -92,6 +92,7 @@ export default function PrintableCard(props) {
   if (card.layout == "adventure" || card.layout == "split") {
     card.split = {
       name: card.card_faces[1]?.name,
+      printed_name: card.card_faces[1]?.printed_name,
       type_line: card.card_faces[1]?.type_line,
       mana_cost: card.card_faces[1]?.mana_cost,
       colors:
@@ -99,6 +100,7 @@ export default function PrintableCard(props) {
       oracle_text: reminderCuller(card.card_faces[1]?.oracle_text),
     };
     card.name = card.card_faces[0]?.name;
+    card.printed_name = card.card_faces[0]?.printed_name;
     card.mana_cost = card.card_faces[0]?.mana_cost;
     card.type_line = card.card_faces[0]?.type_line;
     card.oracle_text = reminderCuller(card.card_faces[0]?.oracle_text);
@@ -127,6 +129,7 @@ export default function PrintableCard(props) {
           card={{
             ...faces[1],
             name: `[BACK] ${faces[1].name}`,
+            printed_name: faces[1].printed_name && `[BACK] ${faces[1].printed_name}`,
             flip: faces[0],
           }}
         />
@@ -138,7 +141,7 @@ export default function PrintableCard(props) {
         key={`face${i}`}
         card={{
           ...f,
-          reminder: i ? `(Transformed from ${faces[0].name})` : "",
+          reminder: i ? `(Transformed from ${faces[0].printed_name || faces[0].name})` : "",
         }}
       >
         {i == 0 && props.children}
@@ -153,7 +156,7 @@ export default function PrintableCard(props) {
           image_uris: card.image_uris,
           layout: i ? "flipped" : "unflipped",
           colors: card.colors,
-          reminder: i ? `(Flipped of ${faces[0].name})` : "",
+          reminder: i ? `(Flipped of ${faces[0].printed_name || faces[0].name})` : "",
         }}
       >
         {i == 0 && props.children}

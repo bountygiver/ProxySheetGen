@@ -6,11 +6,18 @@ export default function () {
     const addToList = (...items) => {
         setList([...list, ...items]);
     };
-    const removeFromList = (item) => {
-        const searchFunction = typeof item === "function" ? item : (c) => c === item;
-        const index = list.findIndex(searchFunction);
-        if (index != -1) {
-            setList(list.toSpliced(index, 1));
+    const removeFromList = (...items) => {
+        if (items.length == 1 && typeof items[0] === "function") {
+            setList(list.filter((f) => !items[0](f)));
+        } else {
+            const spliced = items.reduce((newList, f) => {
+                const index = newList.findIndex((c) => c === f);
+                if (index == -1) {
+                    return newList;
+                }
+                return newList.toSpliced(index, 1);
+            }, list);
+            setList(spliced);
         }
     };
     const replaceItemInList = (oldItem, newItem) => {
