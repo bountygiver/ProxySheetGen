@@ -18,17 +18,17 @@ const fetchResolve = (data) => {
   }
 };
 
-const getArt = function (cardName) {
-  if (!artCache[cardName]) {
-    artCache[cardName] = fetch(
+const getArt = function (oracle_id) {
+  if (!artCache[oracle_id]) {
+    artCache[oracle_id] = fetch(
       `https://api.scryfall.com/cards/search/?q=${encodeURIComponent(
-        `!"${cardName}"`
+        `oracleid:"${oracle_id}" include:extras`
       )}&page=1&unique=art`
     )
       .then((r) => r.json())
       .then(fetchResolve);
   }
-  return artCache[cardName];
+  return artCache[oracle_id];
 };
 
 const ArtOptions = function ({ results }) {
@@ -57,9 +57,9 @@ function Loading() {
 export default function ({ card, visible, handleClose, handleSubmit }) {
   const [result, setResult] = useState(null);
   useEffect(() => {
-    if (card?.name && visible) {
+    if (card?.oracle_id && visible) {
       setResult(null);
-      getArt(card.name).then(setResult);
+      getArt(card.oracle_id).then(setResult);
     }
   }, [card, visible]);
   return (
