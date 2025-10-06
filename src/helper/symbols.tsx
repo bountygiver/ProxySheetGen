@@ -1,14 +1,24 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, JSX } from "react";
+import { Card } from "../models/card"
+
+type Symbology = {
+  symbol: String,
+  svg_uri: String,
+}
+
+type LookupTable = {
+  [key: string]: string
+}
 
 const manaDict = fetch("https://api.scryfall.com/symbology")
   .then((r) => r.json())
   .then((j) => {
     return Promise.resolve(
-      Object.fromEntries(j.data.map((s) => [s.symbol, s.svg_uri]))
+      Object.fromEntries(j.data.map((s: Symbology) => [s.symbol, s.svg_uri]))
     );
   });
 
-function replaceSymbols(text, matchDict = {}) {
+function replaceSymbols(text: string, matchDict: LookupTable = {}) {
   if (!text) return [];
   const re = /\{.+?\}/gm;
   const matcher = [...text.matchAll(re)];
@@ -40,21 +50,26 @@ function replaceSymbols(text, matchDict = {}) {
   return results.flatMap((f) =>
     f.type == "text"
       ? f.contents
-          .split("\n")
-          .flatMap((t) => {
-            return [{ type: "text", contents: t }, { type: "break" }];
-          })
-          .flat()
-          .slice(0, -1)
+        .split("\n")
+        .flatMap((t) => {
+          return [{ type: "text", contents: t }, { type: "break" }];
+        })
+        .flat()
+        .slice(0, -1)
       : f
   );
 }
 
-function replaceAsync(text = "") {
+type MappedResult = {
+  type: string,
+  contents?: string,
+}
+
+function replaceAsync(text = ""): Promise<MappedResult[]> {
   return manaDict.then((d) => Promise.resolve(replaceSymbols(text, d)));
 }
 
-function displayMapped(mappedList) {
+function displayMapped(mappedList: MappedResult[]) {
   return (
     mappedList?.map((t, i) => {
       switch (t.type) {
@@ -69,8 +84,8 @@ function displayMapped(mappedList) {
   );
 }
 
-const useManaSymbols = (txt) => {
-  const [data, setData] = useState([]);
+const useManaSymbols = (txt: string): [MappedResult[], JSX.Element | (JSX.Element | undefined)[]] => {
+  const [data, setData] = useState<MappedResult[]>([]);
 
   const display = useMemo(() => {
     return data.length ? displayMapped(data) : <span>{txt}</span>;

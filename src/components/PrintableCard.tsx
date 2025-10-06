@@ -1,23 +1,24 @@
 import { useManaSymbols } from "../helper/symbols";
-import {default as CardColor, colorDict} from "../helper/color";
+import { default as CardColor, colorDict } from "../helper/color";
+import { Card } from "../models/card"
 
 const reminderTexts = [
   "(You may cast either half. That door unlocks on the battlefield. As a sorcery, you may pay the mana cost of a locked door to unlock it.)",
   "Fuse (You may cast one or both halves of this card from your hand.)",
 ];
 
-const reminderCuller = function (s) {
+const reminderCuller = function (s: string) {
   if (!s) return "";
-  return reminderTexts.reduce((c, t) => c.replace(t), s).trim();
+  return reminderTexts.reduce((c, t) => c.replace(t, ""), s).trim();
 };
 
-function ManaDisplay({ mana }) {
+function ManaDisplay({ mana }: { mana: string }) {
   const [_, manaDisplay] = useManaSymbols(mana);
 
   return manaDisplay;
 }
 
-function FlipHint({ card }) {
+function FlipHint({ card }: { card: Card }) {
   if (!card) {
     return <></>;
   }
@@ -36,7 +37,7 @@ function FlipHint({ card }) {
   );
 }
 
-function CardStats({ card }) {
+function CardStats({ card }: { card: Card }) {
   const stats =
     card.stat_override ??
     (card.power != undefined || card.toughness != undefined
@@ -45,7 +46,7 @@ function CardStats({ card }) {
   return stats && <div className="stats">{stats}</div>;
 }
 
-function CardReminder({ card }) {
+function CardReminder({ card }: { card: Card }) {
   return (
     (card.reminder || card.reminder_desc) && (
       <div className="card-reminder">
@@ -57,10 +58,10 @@ function CardReminder({ card }) {
   );
 }
 
-function CardData({ card, append }) {
+function CardData({ card, append }: { card: Card, append?: string[] }) {
   const [__, oracle] = useManaSymbols(card?.oracle_text);
 
-  const className = function (s) {
+  const className = function (s: string) {
     return [s, ...(append?.map((a) => `${s}-${a}`) ?? [])].join(" ");
   };
 
@@ -78,7 +79,7 @@ function CardData({ card, append }) {
             className="type-contents"
             style={{ background: CardColor(card) }}
           >
-            <div>{card.color_indicator?.map((c) => (<span className="card-color-indicator" style={{color: colorDict[c]}}>&#9210; </span>))}<span>{card.type_line}</span></div>
+            <div>{card.color_indicator?.map((c) => (<span className="card-color-indicator" style={{ color: colorDict[c] }}>&#9210; </span>))}<span>{card.type_line}</span></div>
           </div>
         </div>
         <div className={className("oracle")}>{oracle}</div>
@@ -87,9 +88,9 @@ function CardData({ card, append }) {
   );
 }
 
-export default function PrintableCard(props) {
+export default function PrintableCard(props: { children?: any, card: Card }) {
   const card = { ...props.card };
-  if (card.layout == "adventure" || card.layout == "split") {
+  if ((card.layout == "adventure" || card.layout == "split") && card.card_faces) {
     card.split = {
       name: card.card_faces[1]?.name,
       printed_name: card.card_faces[1]?.printed_name,
@@ -147,7 +148,7 @@ export default function PrintableCard(props) {
         {i == 0 && props.children}
       </PrintableCard>
     ));
-  } else if (card.layout == "flip") {
+  } else if (card.layout == "flip" && faces) {
     return faces.map((f, i) => (
       <PrintableCard
         key={`face${i}`}
@@ -181,7 +182,7 @@ export default function PrintableCard(props) {
             <img src={card.override_image || card.image_uris?.art_crop} />
           </div>
           <CardData card={card} />
-          <CardData card={card.split} append={[2]} />
+          <CardData card={card.split} append={["2"]} />
           <div className="footer">
             <FlipHint card={card.flip} />
             <CardReminder card={card} />

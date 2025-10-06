@@ -14,10 +14,36 @@ import ArtSelector from "./components/ArtSelector";
 import Notification from "./components/Notification";
 import Accordion from 'react-bootstrap/Accordion';
 import ToastContainer from 'react-bootstrap/ToastContainer';
+import { Card } from "./models/card";
 
-const CardContext = createContext();
+type CardActionsType = {
+  cards?: SelectedCard[],
+  addCard: (card: Card) => void,
+  replaceCard: (oldCard: SelectedCard, newCard: Card) => void,
+  removeCard: (card: SelectedCard) => void,
+  editCard: (card: SelectedCard) => void,
+  selectCardArt: (card: SelectedCard) => void,
+}
 
-function CardActions({ card }) {
+type SelectedCard = Card & {
+  internalId: number
+}
+
+type NotificationType = {
+  contents: string,
+  card: SelectedCard[],
+  delay?: number
+}
+
+const CardContext = createContext<CardActionsType>({
+  addCard: () => { },
+  replaceCard: () => { },
+  removeCard: () => { },
+  editCard: () => { },
+  selectCardArt: () => { },
+});
+
+function CardActions({ card }: { card: SelectedCard }) {
   const { removeCard, editCard, selectCardArt } = useContext(CardContext);
 
   return (<ButtonGroup>
@@ -59,7 +85,7 @@ function CardActions({ card }) {
   </ButtonGroup>);
 }
 
-function CardListItem({ card }) {
+function CardListItem({ card }: { card: SelectedCard }) {
 
   return (
     <li className="list-group-item">
@@ -82,7 +108,7 @@ function CardsList() {
         <Accordion.Header>Selected Cards</Accordion.Header>
         <Accordion.Body>
           <ul className="list-group">
-            {cards.map((c) => (
+            {cards?.map((c) => (
               <CardListItem key={c.internalId} card={c} />
             ))}
           </ul>
@@ -94,38 +120,38 @@ function CardsList() {
 }
 
 export default function App() {
-  const [cards, _addCard, _removeCard, _replaceCard] = useList();
-  const [notifications, addNotification, removeNotification] = useList();
-  const [selectedCard, setSelectedCard] = useState();
+  const [cards, _addCard, _removeCard, _replaceCard] = useList<SelectedCard>();
+  const [notifications, addNotification, removeNotification] = useList<NotificationType>();
+  const [selectedCard, setSelectedCard] = useState<SelectedCard>();
   const [editorVisbible, setEditorVisible] = useState(false);
   const [artSelectVisible, setArtSelectVisible] = useState(false);
   const [massEntryVisible, setMassEntryVisible] = useState(false);
   const [theme, setTheme] = useState("light");
   const cardCount = useRef(0);
-  const addCard = function (card) {
+  const addCard = function (card: Card) {
     const newCard = { ...card, internalId: cardCount.current++ };
     _addCard(newCard);
     addNotification({ contents: `Added card ${card.name}`, card: [newCard] });
   };
-  const editCard = function (card) {
+  const editCard = function (card: SelectedCard) {
     setSelectedCard(card);
     setEditorVisible(true);
   };
-  const selectCardArt = function (card) {
+  const selectCardArt = function (card: SelectedCard) {
     setSelectedCard(card);
     setArtSelectVisible(true);
   };
-  const replaceCard = function (card, newCard) {
+  const replaceCard = function (card: SelectedCard, newCard: Card) {
     _replaceCard(card, { ...newCard, internalId: cardCount.current++ });
     setEditorVisible(false);
   };
-  const removeCard = function (card) {
+  const removeCard = function (card: SelectedCard) {
     if (confirm("Are you sure?")) {
       _removeCard(card);
     }
   };
 
-  const setThemeOnCheckbox = function(checked) {
+  const setThemeOnCheckbox = function (checked: boolean) {
     const newTheme = checked ? "dark" : "light";
     setTheme(newTheme);
     document.body.setAttribute("data-bs-theme", newTheme);
@@ -151,20 +177,20 @@ export default function App() {
           <ScryBox onClick={addCard} />
           <CardsList />
           <CardEditor
-            card={selectedCard}
+            card={selectedCard as SelectedCard}
             visible={editorVisbible}
             handleClose={() => setEditorVisible(false)}
             handleSubmit={(newCard) => {
-              replaceCard(selectedCard, newCard);
+              replaceCard(selectedCard as SelectedCard, newCard);
               setEditorVisible(false);
             }}
           />
           <ArtSelector
-            card={selectedCard}
+            card={selectedCard as SelectedCard}
             visible={artSelectVisible}
             handleClose={() => setArtSelectVisible(false)}
             handleSubmit={(newCard) => {
-              replaceCard(selectedCard, newCard);
+              replaceCard(selectedCard as SelectedCard, newCard);
               setArtSelectVisible(false);
             }}
           />

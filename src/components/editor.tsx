@@ -2,8 +2,9 @@ import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 import Form from "react-bootstrap/Form";
 import { useRef } from 'react';
+import { Card } from '../models/card';
 
-const stats = function (card) {
+const stats = function (card: Card) {
   if (!card) return;
   return (
     card.stat_override ??
@@ -13,8 +14,8 @@ const stats = function (card) {
   );
 };
 
-function CardFaceEditor({ card, formId, className, hideImageEditor }) {
-  const oracleFieldRef = useRef();
+function CardFaceEditor({ card, formId, className, hideImageEditor }: { card: Card, formId: string, className: string, hideImageEditor: boolean }) {
+  const oracleFieldRef = useRef<any>(null);
   return (
     <Form className={className} id={formId}>
       <Form.Group className="mb-3">
@@ -78,19 +79,19 @@ function CardFaceEditor({ card, formId, className, hideImageEditor }) {
   );
 }
 
-function CreateEditorForCardFace(card, formId, hideImageEditor = false) {
+function CreateEditorForCardFace(card: Card, formId: string, hideImageEditor = false) {
   return {
-    component: <CardFaceEditor className="flex-grow-1" card={card} formId={formId} hideImageEditor = {hideImageEditor} />,
+    component: <CardFaceEditor className="flex-grow-1" card={card} key={formId} formId={formId} hideImageEditor={hideImageEditor} />,
     callback: () => {
-      const form = document.getElementById(formId);
+      const form = document.getElementById(formId) as HTMLFormElement;
       const formData = new FormData(form);
       const resp = {
         ...card,
         ...Object.fromEntries(
-          formData.entries().map(([k, v]) => [k, v == "" ? undefined : v])
+          Array.from(formData.entries()).map(([k, v]) => [k, v == "" ? undefined : v])
         ),
       };
-      const customFile = form.querySelector("input[type=file]");
+      const customFile = form.querySelector("input[type=file]") as HTMLInputElement;
       if (customFile?.files?.length) {
         resp.override_image = URL.createObjectURL(customFile.files[0]);
       }
@@ -99,11 +100,11 @@ function CreateEditorForCardFace(card, formId, hideImageEditor = false) {
   };
 }
 
-export default function ({ card, visible, handleClose, handleSubmit }) {
+export default function ({ card, visible, handleClose, handleSubmit }: { card: Card, visible: boolean, handleClose: () => void, handleSubmit: (card: Card) => void }) {
   const mainFace = CreateEditorForCardFace(card, "main-card-editor");
   const cardFaces = card?.card_faces
     ?.filter((f) => f.object == "card_face")
-    .map((f, i) => CreateEditorForCardFace(f, `card-face-editor-${i}`, i && card?.image_uris && card.layout != "flip"));
+    .map((f, i) => CreateEditorForCardFace(f, `card-face-editor-${i}`, !!(i && card?.image_uris && card.layout != "flip")));
   return (
     <Modal size="xl" show={visible} onHide={handleClose}>
       <Modal.Header closeButton>
@@ -111,7 +112,7 @@ export default function ({ card, visible, handleClose, handleSubmit }) {
       </Modal.Header>
 
       <Modal.Body>
-        <div class="d-flex flex-wrap gap-2">
+        <div className="d-flex flex-wrap gap-2">
           {(cardFaces?.length && cardFaces?.map((c) => c.component)) ||
             mainFace.component}
         </div>

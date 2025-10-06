@@ -13,10 +13,26 @@ import Spinner from "react-bootstrap/Spinner";
 import Form from "react-bootstrap/Form";
 import Pagination from "react-bootstrap/Pagination";
 import delayedAsync from "../helper/delayedAsync";
+import { Card } from '../models/card';
+import { ScryfallResults } from '../models/scryfall_results';
 
-const ClickContext = createContext();
+type ScryfallSearchResult = ScryfallResults & {
+  total_cards: number
+}
 
-function CardResult({ card }) {
+type ResultCacheType = {
+  [page: number]: () => Promise<ScryfallSearchResult>
+}
+
+type ClickContextType = {
+  onClick: (card: Card) => void,
+}
+
+const ClickContext = createContext<ClickContextType>({
+  onClick: (_) => { }
+});
+
+function CardResult({ card }: { card: Card }) {
   const { onClick } = useContext(ClickContext);
   return (
     <div className="cardResult">
@@ -38,7 +54,7 @@ function Loading() {
   return <Spinner className="mx-auto" animation="border" />;
 }
 
-function CardResults({ resultPromise }) {
+function CardResults({ resultPromise }: { resultPromise: () => Promise<ScryfallSearchResult> }) {
   if (!resultPromise) {
     return <Loading />;
   }
@@ -50,25 +66,30 @@ function CardResults({ resultPromise }) {
   return result.data.map((m) => <CardResult key={m.id} card={m} />);
 }
 
-const fetchQuery = (query, p) =>
+const fetchQuery = (query: string, p: number): Promise<ScryfallSearchResult> =>
   fetch(
     `https://api.scryfall.com/cards/search/?q=${encodeURIComponent(
       query
     )}&page=${p}`
   ).then((r) => r.json());
 
-function SryBoxResults({ query }) {
-  const [results, setResults] = useState({});
+function SryBoxResults({ query }: { query: string }) {
+  const [results, setResults] = useState<ResultCacheType>({});
   const [maxPages, setMaxPages] = useState(0);
   const [page, setPage] = useState(1);
 
-  const gotoPage = (newPage) => {
-    const pageInt = parseInt(newPage);
+  const gotoPage = (pageInt: number) => {
     if (!pageInt || pageInt < 1 || pageInt > maxPages) {
       return;
     }
     setPage(pageInt);
   };
+
+  const gotoPageString = (pageString: string | null) => {
+    if (pageString) {
+      gotoPage(parseInt(pageString));
+    }
+  }
 
   useEffect(() => {
     setMaxPages(0);
@@ -79,7 +100,7 @@ function SryBoxResults({ query }) {
     fetchQuery(query, 1).then((j) => {
       const m = Math.ceil(j.total_cards / 175);
       setMaxPages(m);
-      const r = { 1: delayedAsync(() => Promise.resolve(j)) };
+      const r: ResultCacheType = { 1: delayedAsync(() => Promise.resolve(j)) };
       for (let p = 2; p <= m; ++p) {
         r[p] = delayedAsync(() => fetchQuery(query, p));
       }
@@ -117,7 +138,7 @@ function SryBoxResults({ query }) {
           </Pagination.Item>
           <Pagination.Ellipsis
             onClick={useCallback(
-              () => gotoPage(prompt("Go to page...")),
+              () => gotoPageString(prompt("Go to page...")),
               [query]
             )}
             hidden={page < 6}
@@ -125,7 +146,7 @@ function SryBoxResults({ query }) {
           {pageIndicators}
           <Pagination.Ellipsis
             onClick={useCallback(
-              () => gotoPage(prompt("Go to page...")),
+              () => gotoPageString(prompt("Go to page...")),
               [query]
             )}
             hidden={page > maxPages - 4}
@@ -165,18 +186,20 @@ function SryBoxResults({ query }) {
   );
 }
 
-export default function ScryBox(props) {
+export default function ScryBox(props: { onClick: any; }) {
   const [query, setQuery] = useState("");
-  const form = useRef();
+  const form = useRef<HTMLFormElement>(null);
 
   return (
     <ClickContext.Provider value={{ onClick: props.onClick }}>
       <form
         ref={form}
-        onSubmit={useCallback(function (e) {
+        onSubmit={useCallback(function (e: { preventDefault: () => void; }) {
           e.preventDefault();
-          const frm = new FormData(form.current);
-          setQuery(frm.get("query"));
+          if (form.current) {
+            const frm = new FormData(form.current);
+            setQuery(frm.get("query") as string);
+          }
           return false;
         }, [])}
       >

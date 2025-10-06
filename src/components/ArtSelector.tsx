@@ -2,23 +2,31 @@ import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 import Spinner from "react-bootstrap/Spinner";
 import { useState, useEffect, useContext, createContext } from "react";
+import { Card } from '../models/card';
+import { ScryfallResults } from '../models/scryfall_results';
 
-const ArtContext = createContext();
+type ArtContextType = {
+  handleSubmit: (card: Card) => void,
+}
 
-const artCache = {};
+const ArtContext = createContext<ArtContextType>({
+  handleSubmit: (_) => { }
+});
 
-const fetchResolve = (data) => {
-  if (data.has_more) {
+const artCache: { [key: string]: Promise<Card[]> } = {};
+
+const fetchResolve = (data: ScryfallResults): Promise<Card[]> => {
+  if (data.has_more && data.next_page) {
     return fetch(data.next_page)
       .then((r) => r.json())
       .then(fetchResolve)
       .then((d) => [...data.data, ...d]);
   } else {
-    return data.data;
+    return Promise.resolve(data.data);
   }
 };
 
-const getArt = function (oracle_id) {
+const getArt = function (oracle_id: string) {
   if (!artCache[oracle_id]) {
     artCache[oracle_id] = fetch(
       `https://api.scryfall.com/cards/search/?q=${encodeURIComponent(
@@ -31,7 +39,7 @@ const getArt = function (oracle_id) {
   return artCache[oracle_id];
 };
 
-const ArtOptions = function ({ results }) {
+const ArtOptions = function ({ results }: { results: Card[] }) {
   const { handleSubmit } = useContext(ArtContext);
   if (!results?.length) {
     return <div>No Results found</div>;
@@ -54,8 +62,8 @@ function Loading() {
   return <Spinner animation="border" className="mx-auto" />;
 }
 
-export default function ({ card, visible, handleClose, handleSubmit }) {
-  const [result, setResult] = useState(null);
+export default function ({ card, visible, handleClose, handleSubmit }: { card: Card, visible: boolean, handleClose: () => void, handleSubmit: ((card: Card) => void) }) {
+  const [result, setResult] = useState<Card[] | null>(null);
   useEffect(() => {
     if (card?.oracle_id && visible) {
       setResult(null);
