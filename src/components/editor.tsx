@@ -2,19 +2,19 @@ import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 import Form from "react-bootstrap/Form";
 import { useRef } from 'react';
-import { Card } from '../models/card';
+import { Card, SelectedCard, EditableCardFace } from '../models/card';
 
-const stats = function (card: Card) {
-  if (!card) return;
+const stats = function (card: EditableCardFace) {
+  if (!card) return undefined;
   return (
     card.stat_override ??
     (card.power != undefined || card.toughness != undefined
       ? `${card.power}/${card.toughness}`
-      : card.loyalty ?? card.defense ?? null)
+      : card.loyalty ?? card.defense ?? undefined)
   );
 };
 
-function CardFaceEditor({ card, formId, className, hideImageEditor }: { card: Card, formId: string, className: string, hideImageEditor: boolean }) {
+function CardFaceEditor({ card, formId, className, hideImageEditor }: { card: EditableCardFace, formId: string, className: string, hideImageEditor: boolean }) {
   const oracleFieldRef = useRef<any>(null);
   return (
     <Form className={className} id={formId}>
@@ -79,10 +79,10 @@ function CardFaceEditor({ card, formId, className, hideImageEditor }: { card: Ca
   );
 }
 
-function CreateEditorForCardFace(card: Card, formId: string, hideImageEditor = false) {
+function CreateEditorForCardFace(card: EditableCardFace, formId: string, hideImageEditor = false) {
   return {
     component: <CardFaceEditor className="flex-grow-1" card={card} key={formId} formId={formId} hideImageEditor={hideImageEditor} />,
-    callback: () => {
+    callback: (): EditableCardFace => {
       const form = document.getElementById(formId) as HTMLFormElement;
       const formData = new FormData(form);
       const resp = {
@@ -100,7 +100,7 @@ function CreateEditorForCardFace(card: Card, formId: string, hideImageEditor = f
   };
 }
 
-export default function ({ card, visible, handleClose, handleSubmit }: { card: Card, visible: boolean, handleClose: () => void, handleSubmit: (card: Card) => void }) {
+export default function ({ card, visible, handleClose, handleSubmit }: { card: SelectedCard, visible: boolean, handleClose: () => void, handleSubmit: (card: SelectedCard) => void }) {
   const mainFace = CreateEditorForCardFace(card, "main-card-editor");
   const cardFaces = card?.card_faces
     ?.filter((f) => f.object == "card_face")
@@ -136,7 +136,7 @@ export default function ({ card, visible, handleClose, handleSubmit }: { card: C
                 }
                 handleSubmit(newCard);
               } else {
-                handleSubmit(mainFace.callback());
+                handleSubmit({...card, ...mainFace.callback()});
               }
             }
           }}

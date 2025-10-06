@@ -1,4 +1,4 @@
-import { Card } from "../models/card"
+import { CardFace, Card } from "../models/card"
 
 export const colorDict: { [key: string]: string } = {
   C: "grey",
@@ -9,10 +9,10 @@ export const colorDict: { [key: string]: string } = {
   G: "#539155",
 };
 
-export default function extractCardColor(card: Card, defaultColor = "grey") {
+export default function extractCardColor(card: CardFace | Card, defaultColor = "grey") {
   if (!card || !card.colors || card.colors.length == 0) {
-    if (card?.type_line?.includes("Land") && card.produced_mana?.length) {
-      return extractCardColor({ ...card, colors: card.produced_mana }, defaultColor);
+    if (card?.type_line?.includes("Land") && (card as Card).produced_mana?.length) {
+      return extractCardColor({ ...card, colors: (card as Card).produced_mana }, defaultColor);
     }
     return defaultColor;
   }

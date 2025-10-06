@@ -1,6 +1,6 @@
 import { useState, createContext, useContext, useRef, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.css";
-import { Pen, Trash, CardImage, Eye } from "react-bootstrap-icons";
+import { Pen, Trash, CardImage, Globe2 } from "react-bootstrap-icons";
 import Button from "react-bootstrap/Button";
 import Form from 'react-bootstrap/Form';
 import ButtonGroup from "react-bootstrap/ButtonGroup";
@@ -14,7 +14,7 @@ import ArtSelector from "./components/ArtSelector";
 import Notification from "./components/Notification";
 import Accordion from 'react-bootstrap/Accordion';
 import ToastContainer from 'react-bootstrap/ToastContainer';
-import { Card } from "./models/card";
+import { Card, SelectedCard } from "./models/card";
 
 type CardActionsType = {
   cards?: SelectedCard[],
@@ -23,10 +23,6 @@ type CardActionsType = {
   removeCard: (card: SelectedCard) => void,
   editCard: (card: SelectedCard) => void,
   selectCardArt: (card: SelectedCard) => void,
-}
-
-type SelectedCard = Card & {
-  internalId: number
 }
 
 type NotificationType = {
@@ -71,7 +67,7 @@ function CardActions({ card }: { card: SelectedCard }) {
       href={card?.scryfall_uri}
       target="_blank"
     >
-      <Eye />
+      <Globe2 />
     </Button>
     <Button
       variant="danger"

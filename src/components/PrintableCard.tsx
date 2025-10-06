@@ -1,6 +1,13 @@
 import { useManaSymbols } from "../helper/symbols";
 import { default as CardColor, colorDict } from "../helper/color";
-import { Card } from "../models/card"
+import { SelectedCard, EditableCardFace } from "../models/card"
+
+type DisplayCard = SelectedCard & {
+  split?: EditableCardFace,
+  flip?: EditableCardFace,
+  reminder?: string,
+  reminder_desc?: string,
+}
 
 const reminderTexts = [
   "(You may cast either half. That door unlocks on the battlefield. As a sorcery, you may pay the mana cost of a locked door to unlock it.)",
@@ -18,15 +25,15 @@ function ManaDisplay({ mana }: { mana: string }) {
   return manaDisplay;
 }
 
-function FlipHint({ card }: { card: Card }) {
+function FlipHint({ card }: { card?: EditableCardFace }) {
   if (!card) {
     return <></>;
   }
 
   const [_, hintContents] = useManaSymbols(
-    card.type_line.includes("Land")
-      ? card.oracle_text?.split("\n").find((f) => f.includes("{T}"))
-      : card.mana_cost
+    card.type_line?.includes("Land") &&
+    card.oracle_text?.split("\n").find((f) => f.includes("{T}")) ||
+    card.mana_cost
   );
 
   return (
@@ -37,7 +44,7 @@ function FlipHint({ card }: { card: Card }) {
   );
 }
 
-function CardStats({ card }: { card: Card }) {
+function CardStats({ card }: { card: EditableCardFace }) {
   const stats =
     card.stat_override ??
     (card.power != undefined || card.toughness != undefined
@@ -46,7 +53,7 @@ function CardStats({ card }: { card: Card }) {
   return stats && <div className="stats">{stats}</div>;
 }
 
-function CardReminder({ card }: { card: Card }) {
+function CardReminder({ card }: { card: DisplayCard }) {
   return (
     (card.reminder || card.reminder_desc) && (
       <div className="card-reminder">
@@ -58,7 +65,7 @@ function CardReminder({ card }: { card: Card }) {
   );
 }
 
-function CardData({ card, append }: { card: Card, append?: string[] }) {
+function CardData({ card, append }: { card: EditableCardFace, append?: string[] }) {
   const [__, oracle] = useManaSymbols(card?.oracle_text);
 
   const className = function (s: string) {
@@ -88,36 +95,38 @@ function CardData({ card, append }: { card: Card, append?: string[] }) {
   );
 }
 
-export default function PrintableCard(props: { children?: any, card: Card }) {
+export default function PrintableCard(props: { children?: any, card: DisplayCard | EditableCardFace }) {
   const card = { ...props.card };
-  if ((card.layout == "adventure" || card.layout == "split") && card.card_faces) {
-    card.split = {
-      name: card.card_faces[1]?.name,
-      printed_name: card.card_faces[1]?.printed_name,
-      type_line: card.card_faces[1]?.type_line,
-      mana_cost: card.card_faces[1]?.mana_cost,
+  const fullCard = card as DisplayCard;
+  if ((fullCard.layout == "adventure" || fullCard.layout == "split") && fullCard.card_faces) {
+    fullCard.split = {
+      name: fullCard.card_faces[1]?.name,
+      printed_name: fullCard.card_faces[1]?.printed_name,
+      type_line: fullCard.card_faces[1]?.type_line,
+      mana_cost: fullCard.card_faces[1]?.mana_cost,
+      object: "card_face",
       colors:
-        card.card_faces[1]?.colors ?? card.card_faces[1]?.mana_cost?.split(""),
-      oracle_text: reminderCuller(card.card_faces[1]?.oracle_text),
+        fullCard.card_faces[1]?.colors ?? fullCard.card_faces[1]?.mana_cost?.split(""),
+      oracle_text: reminderCuller(fullCard.card_faces[1]?.oracle_text),
     };
-    card.name = card.card_faces[0]?.name;
-    card.printed_name = card.card_faces[0]?.printed_name;
-    card.mana_cost = card.card_faces[0]?.mana_cost;
-    card.type_line = card.card_faces[0]?.type_line;
-    card.oracle_text = reminderCuller(card.card_faces[0]?.oracle_text);
-    if (card.keywords?.includes("Fuse")) {
-      card.reminder = "Fuse";
-      card.reminder_desc =
+    fullCard.name = fullCard.card_faces[0]?.name;
+    fullCard.printed_name = fullCard.card_faces[0]?.printed_name;
+    fullCard.mana_cost = fullCard.card_faces[0]?.mana_cost;
+    fullCard.type_line = fullCard.card_faces[0]?.type_line;
+    fullCard.oracle_text = reminderCuller(fullCard.card_faces[0]?.oracle_text);
+    if (fullCard.keywords?.includes("Fuse")) {
+      fullCard.reminder = "Fuse";
+      fullCard.reminder_desc =
         "(You may cast one or both halves of this card from your hand.)";
     }
   }
-  if (card.type_line?.split(" ").includes("Room")) {
-    card.reminder = "";
-    card.reminder_desc =
+  if (fullCard.type_line?.split(" ").includes("Room")) {
+    fullCard.reminder = "";
+    fullCard.reminder_desc =
       "(You may cast either half. That door unlocks on the battlefield. As a sorcery, you may pay the mana cost of a locked door to unlock it.)";
   }
 
-  const faces = card.card_faces?.filter((c) => c.object == "card_face");
+  const faces = fullCard.card_faces?.filter((c) => c.object == "card_face");
 
   if (card.layout == "modal_dfc" && faces?.length == 2) {
     return (
@@ -167,10 +176,10 @@ export default function PrintableCard(props: { children?: any, card: Card }) {
 
   const cardContentClasses = [
     "card-print",
-    ...card.type_line
+    ...(card.type_line
       ?.split(" ")
       .filter((s) => s.match(/^\w+$/))
-      .map((s) => `card-type-${s.toLowerCase()}`),
+      .map((s) => `card-type-${s.toLowerCase()}`) ?? []),
     `card-layout-${card.layout}`,
   ].join(" ");
 
@@ -182,10 +191,10 @@ export default function PrintableCard(props: { children?: any, card: Card }) {
             <img src={card.override_image || card.image_uris?.art_crop} />
           </div>
           <CardData card={card} />
-          <CardData card={card.split} append={["2"]} />
+          {fullCard.split && <CardData card={fullCard.split} append={["2"]} />}
           <div className="footer">
-            <FlipHint card={card.flip} />
-            <CardReminder card={card} />
+            <FlipHint card={(card as DisplayCard).flip} />
+            <CardReminder card={fullCard} />
             <div className="artist">&copy; {card.artist}</div>
             <CardStats card={card} />
           </div>
