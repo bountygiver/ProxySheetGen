@@ -1,6 +1,6 @@
 import { useState, createContext, useContext, useRef, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.css";
-import { Pen, Trash, CardImage, Globe2 } from "react-bootstrap-icons";
+import { Pen, Trash, CardImage, Eye, EyeSlash, Globe2, ArrowDownUp } from "react-bootstrap-icons";
 import Button from "react-bootstrap/Button";
 import Form from 'react-bootstrap/Form';
 import ButtonGroup from "react-bootstrap/ButtonGroup";
@@ -17,12 +17,14 @@ import ToastContainer from 'react-bootstrap/ToastContainer';
 import { Card, SelectedCard } from "./models/card";
 
 type CardActionsType = {
-  cards?: SelectedCard[],
+  cards: SelectedCard[],
   addCard: (card: Card) => void,
   replaceCard: (oldCard: SelectedCard, newCard: Card) => void,
   removeCard: (card: SelectedCard) => void,
   editCard: (card: SelectedCard) => void,
   selectCardArt: (card: SelectedCard) => void,
+  toggleHidden: (card: SelectedCard) => void,
+  moveCard: (oldIdx: number | null, newIdx: number | null) => void,
 }
 
 type NotificationType = {
@@ -32,15 +34,18 @@ type NotificationType = {
 }
 
 const CardContext = createContext<CardActionsType>({
+  cards: [],
   addCard: () => { },
   replaceCard: () => { },
   removeCard: () => { },
   editCard: () => { },
   selectCardArt: () => { },
+  toggleHidden: () => { },
+  moveCard: () => { },
 });
 
 function CardActions({ card }: { card: SelectedCard }) {
-  const { removeCard, editCard, selectCardArt } = useContext(CardContext);
+  const { removeCard, editCard, selectCardArt, toggleHidden } = useContext(CardContext);
 
   return (<ButtonGroup>
     <Button
@@ -61,6 +66,23 @@ function CardActions({ card }: { card: SelectedCard }) {
     >
       <CardImage />
     </Button>
+    {card.hide ? <Button
+      variant="warning"
+      title="Unhide"
+      onClick={() => {
+        toggleHidden(card);
+      }}
+    >
+      <Eye />
+    </Button> : <Button
+      variant="warning"
+      title="Hide"
+      onClick={() => {
+        toggleHidden(card);
+      }}
+    >
+      <EyeSlash />
+    </Button>}
     <Button
       variant="success"
       title="Open in Scryfall"
@@ -81,12 +103,15 @@ function CardActions({ card }: { card: SelectedCard }) {
   </ButtonGroup>);
 }
 
-function CardListItem({ card }: { card: SelectedCard }) {
+function CardListItem({ card, children, ...props }: { card: SelectedCard } & React.DetailedHTMLProps<React.LiHTMLAttributes<HTMLLIElement>, HTMLLIElement>) {
 
   return (
-    <li className="list-group-item">
+    <li className="list-group-item" {...props}>
       <div className="d-flex justify-content-between">
-        {card.name}
+        <div>
+          {children}
+          {card.name}
+        </div>
         <div>
           <CardActions card={card} />
         </div>
@@ -96,7 +121,8 @@ function CardListItem({ card }: { card: SelectedCard }) {
 }
 
 function CardsList() {
-  const { cards } = useContext(CardContext);
+  const { cards, moveCard } = useContext(CardContext);
+  const draggingPos = useRef<number | null>(null);
 
   return (
     <Accordion>
@@ -105,7 +131,29 @@ function CardsList() {
         <Accordion.Body>
           <ul className="list-group">
             {cards?.map((c) => (
-              <CardListItem key={c.internalId} card={c} />
+              <CardListItem key={c.internalId} card={c}
+                onDragOver={(e) => { e.preventDefault(); }}
+                onDrop={(e) => {
+                  moveCard(draggingPos.current, c.internalId);
+                  draggingPos.current = null;
+                }}
+              >
+                <span
+                  className="me-1"
+                  role="button"
+                  draggable
+                  onDragStart={(e) => { 
+                    draggingPos.current = c.internalId;
+                    const parent = e.currentTarget?.parentElement?.parentElement;
+                    if (parent) {
+                      e.dataTransfer.setDragImage(parent, 0, 0);
+                    }
+                   }}
+                  onDragEnd={() => { draggingPos.current = null; }}
+                >
+                  <ArrowDownUp></ArrowDownUp>
+                </span>
+              </CardListItem>
             ))}
           </ul>
           {cards?.length ? <></> : <div>No cards, why not add some?</div>}
@@ -116,7 +164,7 @@ function CardsList() {
 }
 
 export default function App() {
-  const [cards, _addCard, _removeCard, _replaceCard] = useList<SelectedCard>();
+  const [cards, _addCard, _removeCard, _replaceCard, setCards] = useList<SelectedCard>();
   const [notifications, addNotification, removeNotification] = useList<NotificationType>();
   const [selectedCard, setSelectedCard] = useState<SelectedCard>();
   const [editorVisbible, setEditorVisible] = useState(false);
@@ -125,7 +173,7 @@ export default function App() {
   const [theme, setTheme] = useState("light");
   const cardCount = useRef(0);
   const addCard = function (card: Card) {
-    const newCard = { ...card, internalId: cardCount.current++ };
+    const newCard = { ...card, hide: false, internalId: cardCount.current++ };
     _addCard(newCard);
     addNotification({ contents: `Added card ${card.name}`, card: [newCard] });
   };
@@ -138,7 +186,7 @@ export default function App() {
     setArtSelectVisible(true);
   };
   const replaceCard = function (card: SelectedCard, newCard: Card) {
-    _replaceCard(card, { ...newCard, internalId: cardCount.current++ });
+    _replaceCard(card, { ...newCard, hide: card.hide, internalId: cardCount.current++ });
     setEditorVisible(false);
   };
   const removeCard = function (card: SelectedCard) {
@@ -146,6 +194,23 @@ export default function App() {
       _removeCard(card);
     }
   };
+  const toggleHidden = function (card: SelectedCard) {
+    _replaceCard(card, { ...card, hide: !card.hide });
+  }
+
+  const moveCard = function (oldIdx: number | null, newIdx: number | null) {
+    setCards((cards) => {
+      const sourceIndex = cards.findIndex((c) => c.internalId == oldIdx);
+      const targetIndex = cards.findIndex((c) => c.internalId == newIdx);
+      if (sourceIndex !== -1 && targetIndex !== -1) {
+        const delList = Array.from(cards);
+        const [reAdd] = delList.splice(sourceIndex, 1);
+        return delList.toSpliced(targetIndex, 0, reAdd);
+      }
+
+      return cards;
+    });
+  }
 
   const setThemeOnCheckbox = function (checked: boolean) {
     const newTheme = checked ? "dark" : "light";
@@ -161,7 +226,7 @@ export default function App() {
   return (
     <div className="App">
       <CardContext.Provider
-        value={{ cards, addCard, removeCard, replaceCard, editCard, selectCardArt }}
+        value={{ cards, addCard, removeCard, replaceCard, editCard, selectCardArt, toggleHidden, moveCard }}
       >
         <div className="content">
           <div className="d-flex justify-content-center">
@@ -196,7 +261,7 @@ export default function App() {
             handleSubmit={(newCards) => {
               const cardsToAdd = newCards.flatMap(({ card, count }) => {
                 return new Array(count).fill(0).map(() => {
-                  return { ...card, internalId: cardCount.current++ };
+                  return { ...card, hide: false, internalId: cardCount.current++ };
                 })
               });
               _addCard(...cardsToAdd);

@@ -48,5 +48,6 @@ export type Card = CardFace & ICard & {
 
 export type SelectedCard = ICard & EditableCardFace & {
   internalId: number,
+  hide: boolean,
   card_faces?: EditableCardFace[],
 }

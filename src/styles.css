@@ -325,3 +325,7 @@ ul.list {
 .card-space .toolbar:hover {
   opacity: 1;
 }
+
+.card-hidden {
+  opacity: 0.5;
+}

@@ -181,10 +181,15 @@ export default function PrintableCard(props: { children?: any, card: DisplayCard
       .filter((s) => s.match(/^\w+$/))
       .map((s) => `card-type-${s.toLowerCase()}`) ?? []),
     `card-layout-${card.layout}`,
-  ].join(" ");
+  ].filter((s) => s.length).join(" ");
+
+  let parentClasses = "card-space";
+  if (fullCard.hide) {
+    parentClasses += " card-hidden dont-print";
+  }
 
   return (
-    <div className="card-space">
+    <div className={parentClasses}>
       <div className={cardContentClasses}>
         <div className="card-contents" style={{ background: CardColor(card) }}>
           <div className="img">

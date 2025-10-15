@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-export default function <T>() : [T[], (...items: T[]) => void, (...items: T[] | [(arg0: T) => boolean]) => void, (oldItem: T | ((arg0: T) => boolean), newItem: T) => void] {
+export default function <T>() : [T[], (...items: T[]) => void, (...items: T[] | [(arg0: T) => boolean]) => void, (oldItem: T | ((arg0: T) => boolean), newItem: T) => void, React.Dispatch<React.SetStateAction<T[]>>] {
     const [list, setList] = useState<T[]>(<T[]>[]);
 
     const addToList = (...items: T[]) => {
@@ -33,5 +33,5 @@ export default function <T>() : [T[], (...items: T[]) => void, (...items: T[] | 
         }
     };
 
-    return [list, addToList, removeFromList, replaceItemInList];
+    return [list, addToList, removeFromList, replaceItemInList, setList];
 }

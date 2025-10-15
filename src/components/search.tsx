@@ -77,6 +77,7 @@ function SryBoxResults({ query }: { query: string }) {
   const [results, setResults] = useState<ResultCacheType>({});
   const [maxPages, setMaxPages] = useState(0);
   const [page, setPage] = useState(1);
+  const [errors, setErrors] = useState<string | null>(null);
 
   const gotoPage = (pageInt: number) => {
     if (!pageInt || pageInt < 1 || pageInt > maxPages) {
@@ -94,6 +95,7 @@ function SryBoxResults({ query }: { query: string }) {
   useEffect(() => {
     setMaxPages(0);
     setResults({});
+    setErrors(null);
     if (!query?.length) {
       return;
     }
@@ -106,7 +108,7 @@ function SryBoxResults({ query }: { query: string }) {
       }
       setResults(r);
       setPage(1);
-    });
+    }).catch(() => setErrors("Search failed. Connection to Scryfall may be failed."));
   }, [query]);
 
   const PageIndicator = function () {
@@ -182,7 +184,9 @@ function SryBoxResults({ query }: { query: string }) {
             </Suspense>
           )) || <div className="mx-auto fw-bold">Enter ScryFall search terms to start adding cards!</div>}
         </div>
-      </div></Suspense>
+      </div>
+      <div className="text-danger">{errors}</div>
+    </Suspense>
   );
 }
 
@@ -207,7 +211,7 @@ export default function ScryBox(props: { onClick: any; }) {
         <Button variant="primary" className="m-1" type="submit">
           Search
         </Button>
-        {<SryBoxResults query={query} />}
+        <SryBoxResults query={query} />
       </form>
     </ClickContext.Provider>
   );
