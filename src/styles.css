@@ -215,6 +215,9 @@ ul.list {
   white-space: pre-wrap;
   margin: 0px;
   background-color: rgba(255, 255, 255, 0.7);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .oracle.oracle-2 {
@@ -228,11 +231,14 @@ ul.list {
   min-height: 15mm;
 }
 
-.card-contents > .footer {
-  grid-area: footer;
+.card-contents .footer {
   display: grid;
   grid-template: "flip flip" auto "artist stats" auto / 1fr auto;
   background-color: rgba(255, 255, 255, 0.7);
+}
+
+.card-contents > .footer {
+  grid-area: footer;
 }
 
 .card-contents .footer > .stats {
@@ -267,7 +273,7 @@ ul.list {
   object-fit: contain;
 }
 
-.card-contents > .footer > .artist {
+.card-contents .footer > .artist {
   grid-area: artist;
   display: flex;
   flex-direction: column;
@@ -276,11 +282,11 @@ ul.list {
   font-size: 5pt;
 }
 
-.card-contents > .footer > .artist::before {
+.card-contents .footer > .artist::before {
   content: "PLAYTEST ONLY // NOT FOR RESALE";
 }
 
-.card-contents > .footer > .artist::after {
+.card-contents .footer > .artist::after {
   content: "™ & © Wizards of the Coast";
 }
 

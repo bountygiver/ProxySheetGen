@@ -65,7 +65,7 @@ function CardReminder({ card }: { card: DisplayCard }) {
   );
 }
 
-function CardData({ card, append }: { card: EditableCardFace, append?: string[] }) {
+function CardData({ card, append, children }: { card: EditableCardFace, append?: string[], children?: any }) {
   const [__, oracle] = useManaSymbols(card?.oracle_text);
 
   const className = function (s: string) {
@@ -89,7 +89,10 @@ function CardData({ card, append }: { card: EditableCardFace, append?: string[] 
             <div>{card.color_indicator?.map((c) => (<span className="card-color-indicator" style={{ color: colorDict[c] }}>&#9210; </span>))}<span>{card.type_line}</span></div>
           </div>
         </div>
-        <div className={className("oracle")}>{oracle}</div>
+        <div className={className("oracle")}>
+          <div>{oracle}</div>
+          {children}
+        </div>
       </>
     )
   );
@@ -188,6 +191,15 @@ export default function PrintableCard(props: { children?: any, card: DisplayCard
     parentClasses += " card-hidden dont-print";
   }
 
+  const footerInOracle = !fullCard.split && !fullCard.type_line?.split(" ")?.includes("Saga") && !fullCard.type_line?.split(" ")?.includes("Class");
+
+  const footer = <div className="footer">
+            <FlipHint card={(card as DisplayCard).flip} />
+            <CardReminder card={fullCard} />
+            <div className="artist">&copy; {card.artist}</div>
+            <CardStats card={card} />
+          </div>
+
   return (
     <div className={parentClasses}>
       <div className={cardContentClasses}>
@@ -195,14 +207,11 @@ export default function PrintableCard(props: { children?: any, card: DisplayCard
           <div className="img">
             <img src={card.override_image || card.image_uris?.art_crop} />
           </div>
-          <CardData card={card} />
+          <CardData card={card}>
+            {footerInOracle && footer || null}
+          </CardData>
           {fullCard.split && <CardData card={fullCard.split} append={["2"]} />}
-          <div className="footer">
-            <FlipHint card={(card as DisplayCard).flip} />
-            <CardReminder card={fullCard} />
-            <div className="artist">&copy; {card.artist}</div>
-            <CardStats card={card} />
-          </div>
+          {!footerInOracle && footer || null}
         </div>
       </div>
       <div className="dont-print toolbar">

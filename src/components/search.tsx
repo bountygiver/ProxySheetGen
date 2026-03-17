@@ -8,6 +8,7 @@ import {
   Suspense,
   use,
 } from "react";
+import { ErrorBoundary } from "react-error-boundary";
 import Button from "react-bootstrap/Button";
 import Spinner from "react-bootstrap/Spinner";
 import Form from "react-bootstrap/Form";
@@ -99,16 +100,21 @@ function SryBoxResults({ query }: { query: string }) {
     if (!query?.length) {
       return;
     }
-    fetchQuery(query, 1).then((j) => {
-      const m = Math.ceil(j.total_cards / 175);
-      setMaxPages(m);
-      const r: ResultCacheType = { 1: delayedAsync(() => Promise.resolve(j)) };
-      for (let p = 2; p <= m; ++p) {
-        r[p] = delayedAsync(() => fetchQuery(query, p));
-      }
-      setResults(r);
-      setPage(1);
-    }).catch(() => setErrors("Search failed. Connection to Scryfall may be failed."));
+    const r: ResultCacheType = {
+      1: delayedAsync(() => fetchQuery(query, 1).then((j) => {
+        setErrors(null);
+        const m = Math.ceil(j.total_cards / 175);
+        setMaxPages(m);
+        const rx: ResultCacheType = { ...r };
+        for (let p = 2; p <= m; ++p) {
+          rx[p] = delayedAsync(() => fetchQuery(query, p), () => alert("Search failed. Connection to Scryfall may be failed. Try again later!"));
+        }
+        setResults(rx);
+        return j;
+      }), () => setErrors("Search failed. Connection to Scryfall may be failed."))
+    };
+    setResults(r);
+    setPage(1);
   }, [query]);
 
   const PageIndicator = function () {
@@ -179,10 +185,13 @@ function SryBoxResults({ query }: { query: string }) {
           style={{ maxHeight: "400px" }}
         >
           {(query?.length && (
-            <Suspense fallback={<Loading />}>
-              <CardResults resultPromise={results[page]} />
-            </Suspense>
-          )) || <div className="mx-auto fw-bold">Enter ScryFall search terms to start adding cards!</div>}
+            <ErrorBoundary fallback={<div className="text-danger">Search failed. Connection to Scryfall may be failed.</div>}>
+              <Suspense fallback={<Loading />}>
+                <CardResults resultPromise={results[page]} />
+              </Suspense>
+            </ErrorBoundary>
+          )) ||
+            <div className="mx-auto fw-bold">Enter ScryFall search terms to start adding cards!</div>}
         </div>
       </div>
       <div className="text-danger">{errors}</div>
