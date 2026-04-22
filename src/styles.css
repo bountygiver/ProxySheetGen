@@ -116,6 +116,10 @@ ul.list {
   grid-template: "name name" auto "art art" 1fr "type type" 0px "name2 oracle" auto "type2 oracle" auto "oracle2 oracle" auto "footer footer" auto / 1fr 1fr;
 }
 
+.card-layout-prepare > .card-contents {
+  grid-template: "name name" auto "art art" 1fr "type type" 0px "oracle name2" auto "oracle type2" auto "oracle oracle2" auto "footer footer" auto / 1fr 1fr;
+}
+
 .card-layout-split > .card-contents {
   grid-template: "name name2" auto "art art" 1fr "type type2" 0px "oracle oracle2" auto "footer footer" auto / 1fr 1fr;
 }
@@ -144,10 +148,16 @@ ul.list {
     -1px -1px 0px white;
   display: grid;
   grid-template-columns: 1fr auto;
+  align-items: center;
+  align-content: start;
 }
 
-.card-contents > .name.name-2 {
+.card-contents > .name-2 {
   grid-area: name2;
+}
+
+.card-layout-adventure .name.name-2, .card-layout-prepare .name.name-2 {
+  font-size: 2.5mm;
 }
 
 .mana {
@@ -158,8 +168,9 @@ ul.list {
   width: 16px;
 }
 
-.adventure .mana img {
-  width: 10px;
+.card-layout-adventure .mana.mana-2 img,
+.card-layout-prepare .mana.mana-2 img {
+  width: 11px;
 }
 
 .card-contents > .type > .type-contents:before {
@@ -181,7 +192,9 @@ ul.list {
 .card-contents > .type {
   grid-area: type;
   transform: translateY(0%);
+  align-content: end;
 }
+
 .card-contents > .type.type-2 {
   grid-area: type2;
 }
@@ -203,7 +216,8 @@ ul.list {
 .card-type-saga .type > .type-contents,
 .card-type-case .type > .type-contents,
 .card-type-class .type > .type-contents,
-.card-layout-adventure .type.type-2 > .type-contents {
+.card-layout-adventure .type.type-2 > .type-contents,
+.card-layout-prepare .type.type-2 > .type-contents {
   position: relative;
 }
 

@@ -101,7 +101,7 @@ function CardData({ card, append, children }: { card: EditableCardFace, append?:
 export default function PrintableCard(props: { children?: any, card: DisplayCard | EditableCardFace }) {
   const card = { ...props.card };
   const fullCard = card as DisplayCard;
-  if ((fullCard.layout == "adventure" || fullCard.layout == "split") && fullCard.card_faces) {
+  if ((fullCard.layout == "adventure" || fullCard.layout == "split" || fullCard.layout == "prepare") && fullCard.card_faces) {
     fullCard.split = {
       name: fullCard.card_faces[1]?.name,
       printed_name: fullCard.card_faces[1]?.printed_name,
