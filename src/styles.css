@@ -91,7 +91,7 @@ ul.list {
   background: white;
   color: black;
   border-radius: 3.5%;
-  grid-template: "name" auto "art" 1fr "type" 0px "oracle" auto "footer" auto;
+  grid-template: "name" auto "art" minmax(20px, auto) "type" 0px "oracle" fit-content(100%) "footer" auto;
 }
 
 .card-layout-flipped > .card-contents,
@@ -113,11 +113,11 @@ ul.list {
 }
 
 .card-layout-adventure > .card-contents {
-  grid-template: "name name" auto "art art" 1fr "type type" 0px "name2 oracle" auto "type2 oracle" auto "oracle2 oracle" auto "footer footer" auto / 1fr 1fr;
+  grid-template: "name name" auto "art art" minmax(20px, auto) "type type" 0px "name2 oracle" auto "type2 oracle" auto "oracle2 oracle" fit-content(90%) "footer footer" auto / 1fr 1fr;
 }
 
 .card-layout-prepare > .card-contents {
-  grid-template: "name name" auto "art art" 1fr "type type" 0px "oracle name2" auto "oracle type2" auto "oracle oracle2" auto "footer footer" auto / 1fr 1fr;
+  grid-template: "name name" auto "art art" minmax(20px, auto) "type type" 0px "oracle name2" auto "oracle type2" auto "oracle oracle2" fit-content(100%) "footer footer" auto / 1fr 1fr;
 }
 
 .card-layout-split > .card-contents {

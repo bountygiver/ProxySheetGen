@@ -103,8 +103,8 @@ const processUserEntry = function (input: string): [CardMatchesByName, CardMatch
   const setCodeMatches = matches.filter((f) => hasSetCode(f));
 
   return [
-    UniqueReducer(nameOnlyMatches, ([_, __, cardName]) => fixSplitCards(cardName), ([_, num]) => parseInt(num) || 0),
-    UniqueReducer(setCodeMatches, ([_, __, ___, set, code]) => `${set.toUpperCase()} ${code}`, ([_, num]) => parseInt(num) || 0),
+    UniqueReducer(nameOnlyMatches, ([_, __, cardName]) => fixSplitCards(cardName), ([_, num]) => parseInt(num) || 1),
+    UniqueReducer(setCodeMatches, ([_, __, ___, set, code]) => `${set.toUpperCase()} ${code}`, ([_, num]) => parseInt(num) || 1),
   ];
 }
 
